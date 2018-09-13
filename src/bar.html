@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./d3.v5.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+</body>
+<script>
+    // 定义柱状图数据
+    const dataset = [
+        {"data":32,name:"a"},
+        {"data":64,name:"b"},
+        {"data":70,name:"c"},
+        {"data":80,name:"d"},
+        {"data":99,name:"e"},
+        {"data":53,name:"f"},
+        {"data":34,name:"g"},
+        {"data":56,name:"h"},
+    ]
+    const valueArr = dataset.map((item,index)=>dataset[index].data)
+    const nameArr  = dataset.map((item,index)=>dataset[index].name)
+    const padding=20
+    
+    //矩形之间的空白
+    const rectPadding = 30;
+    const min = d3.min(valueArr)
+    const max = d3.max(valueArr)
+    const width  = 500
+    const height = 500
+    const linear = d3.scaleLinear().domain([min,max]).range([0,20])
+    const svg = d3.selectAll("body").append("svg").attr("width",width).attr("height",height)
+
+    // x轴序数比例尺
+    const xScale = d3.scaleBand().domain(nameArr).rangeRound([0, width - padding*2]).padding(0)
+    // y轴线性比例尺
+    const yScale = d3.scaleLinear().domain([0,max]).range([height-padding*2,0])
+
+    // 定义x轴
+    const xAxis = d3.axisBottom(xScale).ticks(dataset.length).tickSize(5);
+    
+    // 定义线段
+    const xLine = d3.axisTop(xScale).ticks(dataset.length).tickSize(20)
+
+    // 定义辅助线
+    const helpLine = d3.axisTop(xScale).ticks(dataset.length).tickSize(20)
+
+    // 定义y轴
+    const yAxis = d3.axisLeft(yScale).ticks(15).tickSize(5);
+
+    // 画线段
+    const line = svg.append("g").attr("class","xline").attr("transform",`translate(${padding},${height-padding})`).call(xLine)
+    line.select(".domain").remove()
+    line.selectAll(".xline line").attr("stroke", "red")
+
+    // 画x轴
+    svg.append("g").attr("class","xaxis").attr("transform",`translate(${padding},${height-padding})`).call(xAxis)
+
+    // 画y轴
+    svg.append("g").attr("class","yaxis").attr("transform",`translate(${padding},${padding})`).call(yAxis)
+ 
+    // 画柱状图 第一个过渡动画效果会停止下一个过渡动画效果
+    svg.selectAll("rect")
+        .data(dataset)
+        .enter()
+        .append("rect")
+        .attr("class","rect")
+        .attr("transform",(d,i)=>`translate(${padding},${padding})`)
+        .attr("x",(d)=> xScale(d.name)+rectPadding/2)
+        .attr("y",(d)=> yScale(yScale.domain()[0]))
+        .on("mouseover", function(d){
+            svg.append("line")
+            .attr("class","help-line")
+            .attr("x1",padding)
+            .attr("y1",yScale(d.data)+padding+1)
+            .attr("x2",xScale(d.name)+padding+rectPadding)
+            .attr("y2",yScale(d.data)+padding+1)
+            .attr("stroke-width",2)
+            .transition().duration(100)
+            .attr("stroke","red")
+            .attr("stroke-dasharray","4,4")
+            return d3.select(this).transition().duration(500).attr("fill","red")
+        })
+        .on("mouseout", function(){
+            svg.selectAll(".help-line")
+            .transition().duration(300)
+            .attr("stroke","transparent")
+            .attr("stroke-width",2)
+            .attr("stroke-dasharray","4,4")
+            return d3.select(this).transition().duration(1000).attr("fill","black")
+        })
+        .attr("y",(d)=> yScale(d.data))
+        .attr("width",xScale.bandwidth()-rectPadding)
+        .attr("height",(d)=> height - padding*2 - yScale(d.data) -20)
+        .attr("fill","black")
+       
+    // 添加文字
+    svg.selectAll(".text")
+        .data(dataset)
+        .enter()
+        .append("text")
+        .attr("class","text")
+        .attr("transform",(d,i)=>`translate(${padding},${padding})`)
+        .attr("x",(d,i)=> xScale(d.name)+rectPadding/4)
+        .attr("y",(d)=> yScale(d.data))
+        .attr("dx",(xScale.bandwidth()-rectPadding)/3)
+        .attr("dy",20)
+        .text((d)=> d.data)
+        .attr("fill",'#fff')
+</script>
+</html>
