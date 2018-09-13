@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./d3.v5.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+   
+</body>
+<script>
+    const width = height = 300
+    const svg = d3.selectAll("body").append("svg").attr("width",width).attr("height",height)
+    // 定义柱状图数据
+    const dataset = [
+        {"data":32,name:"a"},
+        {"data":64,name:"b"},
+        {"data":70,name:"c"},
+        {"data":80,name:"d"},
+        {"data":99,name:"e"},
+        {"data":53,name:"f"},
+        {"data":34,name:"g"},
+        {"data":56,name:"h"},
+    ]
+    const valueArr = dataset.map((item,index)=>dataset[index].data)
+    const nameArr  = dataset.map((item,index)=>dataset[index].name)
+    // 将数值数组转换为饼状图需要的数据
+    // data: 32
+    // endAngle: 6.283185307179585
+    // index: 7
+    // padAngle: 0
+    // startAngle: 5.871173155889121
+    // value: 32
+    const pieData = d3.pie()(valueArr)
+
+    // 外半径
+    const outerRadius = width/2
+    // 内半径
+    const innerRadius = width/6
+
+    // 颜色
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    // 弧生成器
+    const arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius)
+
+    // 创建每个弧度的包裹元素数组
+    const arcs = svg.selectAll("g").data(pieData).enter().append("g").attr("transform",`translate(${width/2},${width/2})`)
+    // 画扇形
+    arcs.append("path").attr("fill",(d,i)=>color(i)).attr("d",d=>arc(d))
+
+    // 加标注
+    arcs.append("text").attr("transform",d=>`translate(${arc.centroid(d)})`).attr("text-anchor","middle").text(d=>dataset[d.index].name+":"+d.data)
+</script>
+</html>
